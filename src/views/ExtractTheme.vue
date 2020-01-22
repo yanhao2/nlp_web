@@ -2,13 +2,18 @@
     <div class="PartsAnalysis">
         <Card dis-hover class="Card">
             <p slot="title">主题提取</p>
-            <div v-if="listData">
+            <div v-if="data.length > 0">
                 <div ref="KeywordId" class="KeywordEcharts">
                 </div>
             </div>
             <div class="KeywordElse" v-else>
-                <div>没有数据</div>
+                <div>未提取到主题</div>
             </div>
+            <Spin fix v-show="isList">
+                <Icon type="ios-loading" size=18 class="demo-spin-icon-load"></Icon>
+                <div>Loading</div>
+            </Spin>
+
         </Card>
     </div>
 </template>
@@ -23,7 +28,7 @@
       return {
         data: [],
         links: [],
-        listData: '',
+        isList: true,
         industry: '22'
       };
     },
@@ -64,9 +69,11 @@
           series: [{
             type: 'graph',
             layout: 'force',
+            legendHoverLink: true,
+            focusNodeAdjacency: true,
             symbolSize: 40,
             force: {
-              repulsion: 300
+              repulsion: 600
             },
             categories: [
               {
@@ -78,34 +85,36 @@
             ],
             itemStyle: {
               normal: {
-                label: {
-                  show: true,
-                },
-                nodeStyle: {
-                  brushType: 'both',
-                  borderColor: 'rgba(255,215,0,0.4)',
-                  borderWidth: 1
-                },
-                lineStyle: {
-                  color: 'source',
-                  curveness: 0.3
-                },
-              },
-              emphasis: {
-                lineStyle: {
-                  width: 10
-                }
+                borderColor: '#fff',
+                borderWidth: 1,
+                shadowBlur: 10,
+                shadowColor: 'rgba(0, 0, 0, 0.3)'
               }
             },
-            roam: true,
+            label : {
+              show : true,
+            },
+            lineStyle: {
+              color: 'source',
+              curveness: 0.3
+            },
+            emphasis: {
+              lineStyle: {
+                width: 5
+              }
+            },
+            roam : false,
             data: this.data,
             links: this.links,
           }]
         };
-        myChart.setOption(option);
+        myChart.setOption(option, true);
       },
       async LoadData(record) {
         try {
+          this.data = []
+          this.links = []
+          this.isList = true
           let formData = new FormData();
           formData.append('title', record.title);
           formData.append('content', record.content);
@@ -115,22 +124,40 @@
             this.listData = result.data
             let data = [
               {name: '主题', category: 0},
-              {name: result.data, category: 1}
             ]
-            if (data.length > 0) {
-              data.map((v, i) => {
+            if (this.listData.length > 0) {
+              this.listData.map((v, i) => {
                 this.data.push({
-                  name: v.name,
-                  category: v.category,
+                  name: v,
+                  category: 1,
                 })
                 this.links.push({
-                  source: v.name,
+                  source: v,
                   target: "主题",
                 })
               })
+              this.data = [...data, ...this.data]
+              this.data.forEach((node) => {
+                if (node.category === 0) {
+                  node.symbolSize = 50;
+                } else {
+                  node.symbolSize = 60
+                  node.symbolSize /= 1.5;
+                  node.label = {
+                    normal: {
+                      show: node.symbolSize > 30
+                    }
+                  };
 
-              console.log('data', this.data)
+                }
+                node.itemStyle = null;
+                node.category = node.category;
+              });
+            } else {
+              this.data = []
             }
+
+            this.isList = false
             this.$nextTick(() => {
               this.initEchart()
             })

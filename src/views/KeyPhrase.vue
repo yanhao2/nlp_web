@@ -5,9 +5,13 @@
             <div ref="KeywordId" class="KeywordEcharts" v-if="word.length > 0">
 
             </div>
-            <div v-else class="KeywordElse">
-                <div>没有数据</div>
+            <div  class="KeywordElse" v-else>
+                <div>没有关键短语</div>
             </div>
+            <Spin fix v-show="isList">
+                <Icon type="ios-loading" size=18 class="demo-spin-icon-load"></Icon>
+                <div>Loading</div>
+            </Spin>
         </Card>
     </div>
 </template>
@@ -20,7 +24,8 @@
     props: ['formData'],
     data() {
       return {
-        word: []
+        word: [],
+        isList: true
       };
     },
     computed: {},
@@ -91,6 +96,8 @@
       },
       async LoadData(record) {
         try {
+          this.word = []
+          this.isList = true
           let formData = new FormData();
           formData.append('title', record.title);
           formData.append('content', record.content);
@@ -98,6 +105,7 @@
           if (result.code === 200) {
             this.word = result.data
           }
+          this.isList = false
           this.$nextTick(() => {
             this.initEchart()
           })

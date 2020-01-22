@@ -2,11 +2,16 @@
     <div class="PartsAnalysis">
         <Card dis-hover class="Card">
             <p slot="title">主体提取</p>
-            <div ref="KeywordId" class="KeywordEcharts" v-if="data.length > 0 && links.length > 0">
+            <div ref="KeywordId" class="KeywordEcharts" v-if="data.length > 0">
             </div>
             <div class="KeywordElse" v-else>
-                <div>没有数据</div>
+                <div>未提取到主体</div>
             </div>
+            <Spin fix v-show="isList">
+                <Icon type="ios-loading" size=18 class="demo-spin-icon-load"></Icon>
+                <div>Loading</div>
+            </Spin>
+
         </Card>
     </div>
 </template>
@@ -21,6 +26,7 @@
       return {
         data: [],
         links: [],
+        isList: true,
         industry: '22'
       };
     },
@@ -33,6 +39,7 @@
         }
         const myChart = this.$echarts.init(KeywordId);
         let option = {
+
           grid: {
             top: '20',
             bottom: '20'
@@ -61,9 +68,11 @@
           series : [{
             type: 'graph',
             layout: 'force',
+            legendHoverLink: true,
+            focusNodeAdjacency: true,
             symbolSize: 40,
             force: {
-              repulsion: 300
+              repulsion: 600
             },
             categories : [
               {
@@ -99,10 +108,13 @@
             links : this.links,
           }]
         };
-        myChart.setOption(option);
+        myChart.setOption(option, true);
       },
       async LoadData(record) {
         try {
+          this.isList = true
+          this.data = []
+          this.links = []
           let formData = new FormData();
           formData.append('title', record.title);
           formData.append('content',record.content);
@@ -123,8 +135,26 @@
               })
               let data = [{name: '主体', category: 0}]
               this.data = [...data, ...this.data]
-              console.log('data', this.data)
+              this.data.forEach((node) => {
+                if (node.category === 0) {
+                  node.symbolSize = 50;
+                } else {
+                  node.symbolSize = 60
+                  node.symbolSize /= 1.5;
+                  node.label = {
+                    normal: {
+                      show: node.symbolSize > 30
+                    }
+                  };
+
+                }
+                node.itemStyle = null;
+                node.category = node.category;
+              });
+            } else {
+              this.data = []
             }
+            this.isList = false
             this.$nextTick(() => {
               this.initEchart()
             })

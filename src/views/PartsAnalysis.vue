@@ -1,17 +1,17 @@
 <template>
     <div class="PartsAnalysis">
         <Card dis-hover class="Card">
-            <p slot="title">词性分析</p>
+            <p slot="title">分词及词性</p>
             <div class="height">
                 <div class="rows">
-                    <div class="cols">
+                    <div class="cols sorcolls">
                         <div class="content">
                             <div class="item" v-for="(item, i) in word" :style="{backgroundColor: item.bgColor}">{{item.name}}
                             </div>
                         </div>
                     </div>
-                    <div class="right">
-                        <div>
+                    <div class="right sorcolls">
+                        <div >
                             <div class="title">词性类别图示:</div>
                             <div class="content">
                                 <div class="item" v-for="(item, i) in pos" v-if="i < 40"
@@ -43,17 +43,13 @@
     computed: {},
     methods: {
       getBgColor () {
-        var str = "#";
-        var arr = [0,1,2,3,4,5,6,7,8,9,'a','b','c','d','e','f'];
-        for(var i=0;i<6;i++){
-          var num = parseInt(Math.random() * 16);
-          str+=arr[num];
-        }
+        let str = "rgb(" +Math.round(Math.random() * 255) +", " +Math.round(Math.random() * 255) + ", " +Math.round(Math.random() * 255) + ")"
         return str;
       },
       async LoadData(record) {
         try {
-
+          this.pos = []
+          this.word = []
           let formData = new FormData();
           formData.append('title', record.title);
           formData.append('content', record.content);
@@ -73,7 +69,6 @@
                     bgColor: v.bgColor,
                   })
                 }
-                // console.log(this.pos)
                 if (this.pos.length > 0) {
                   this.pos.map((items, j) => {
                     if (items.name == v.pos) {
@@ -136,9 +131,29 @@
                         padding: 3px 12px;
                         margin-right: 5px;
                         margin-bottom: 5px;
+                        color: #fff;
                     }
                 }
             }
+        }
+        .sorcolls{
+            overflow-y: auto;
+            height: 300px;
+        }
+        .sorcolls::-webkit-scrollbar {/*滚动条整体样式*/
+            width: 5px;     /*高宽分别对应横竖滚动条的尺寸*/
+            height: 5px;
+        }
+
+        .sorcolls::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
+            border-radius: 10px;
+            -webkit-box-shadow: inset 0 0 5px rgba(144,147,153,.4);
+            background: #f5f5f5;
+        }
+
+        .sorcolls::-webkit-scrollbar-track {/*滚动条里面轨道*/
+            -webkit-box-shadow: inset 0 0 5px #fff;
+            background: #fff;
         }
     }
 </style>

@@ -1,6 +1,6 @@
 <template>
     <div class="PartsAnalysis">
-        <Card dis-hover class="Card">
+        <Card dis-hover class="Card ClassificationAnalysis">
             <p slot="title">分类分析</p>
             <div ref="ClassificationAnalysisId" class="EntityIdentificationEcharts">
 
@@ -108,10 +108,11 @@
             }]
           }]
         };
-        myChart.setOption(option);
+        myChart.setOption(option, true);
       },
       async LoadData(record) {
         try {
+          this.data = []
           let formData = new FormData();
           formData.append('title', record.title);
           formData.append('content', record.content);
@@ -170,10 +171,10 @@
         min-height: 300px;
         padding: 20px;
 
-        .Card {
+        .ClassificationAnalysis {
             .EntityIdentificationEcharts {
                 width: 100%;
-                height: 300px;
+                min-height: 300px;
             }
         }
     }

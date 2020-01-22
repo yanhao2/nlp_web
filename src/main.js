@@ -11,6 +11,9 @@ import echarts from 'echarts'
 import echartswordcloud from 'echarts-wordcloud'
 Vue.prototype.$echarts = echarts
 
+import jsPlumb from 'jsplumb'
+Vue.prototype.$jsPlumb = jsPlumb.jsPlumb
+
 import axios from 'axios'
 Vue.prototype.$axios = axios
 Vue.use(ViewUI);

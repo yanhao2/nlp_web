@@ -1,16 +1,21 @@
 <template>
-    <div class="PartsAnalysis">
+    <div class="PartsAnalysis EntityIdentification">
         <Card dis-hover class="Card">
             <p slot="title">实体识别</p>
             <div ref="EntityIdentificationId" class="EntityIdentificationEcharts">
 
             </div>
+            <Spin fix v-show="isList">
+                <Icon type="ios-loading" size=18 class="demo-spin-icon-load"></Icon>
+                <div>Loading</div>
+            </Spin>
         </Card>
     </div>
 </template>
 
 <script>
   import api from '../api/api'
+  import pinyin from "pinyin";
 
   export default {
     props: ['formData'],
@@ -19,10 +24,12 @@
       return {
         data: [],
         links: [],
+        isList: true
       };
     },
     computed: {},
     methods: {
+      pinyin: pinyin,
       initEchart() {
         let EntityIdentificationId = this.$refs.EntityIdentificationId;
         if (!EntityIdentificationId) {
@@ -30,53 +37,40 @@
         }
         const myChart = this.$echarts.init(EntityIdentificationId);
         let option = {
-          grid: {
-            top: '20',
-            bottom: '20'
-          },
-          title : {
-            text : '',
-            subtext : '',
-            x : 'right',
-            y : 'bottom'
+          title: {
+            text: '',
+            subtext: '',
+            x: 'right',
+            y: 'bottom'
           },
           // tooltip : {
           // },
-          toolbox : {
-            show : true,
-            feature : {
-              restore : { show : true },
-              magicType : { show : true,},
-              saveAsImage : { show : true }
+          toolbox: {
+            show: true,
+            feature: {
+              restore: {show: true},
+              magicType: {show: true,},
+              saveAsImage: {show: true}
             }
           },
-          legend : {
-            x : 'left',
-            data : ['实体类型', '实体内容']
+          legend: {
+            x: 'left',
+            data: ['实体', '实体词']
           },
-          series : [{
-            left: 'center',
-            top: '100',
-            bottom: '100',
+          series: [{
             type: 'graph',
             layout: 'force',
-            animationDuration: 1500,
-            animationEasingUpdate: 'quinticInOut',
             legendHoverLink: true,
             focusNodeAdjacency: true,
             force: {
-              repulsion: 200
+              repulsion: 300
             },
-            name : "内容",
-            categories : [
+            categories: [
               {
-                name : '文本'
+                name: '实体'
               },
               {
-                name : '实体类型'
-              },
-              {
-                name : '实体内容'
+                name: '实体词'
               }
             ],
             itemStyle: {
@@ -87,8 +81,12 @@
                 shadowColor: 'rgba(0, 0, 0, 0.3)'
               }
             },
-            label : {
-              show : true,
+            label: {
+              show: true,
+              formatter: function (params) {
+                return params.data.showName //此处为label转换
+              }
+
             },
             lineStyle: {
               color: 'source',
@@ -99,94 +97,71 @@
                 width: 5
               }
             },
-            // itemStyle : {
-            //   normal : {
-            //
-            //     nodeStyle : {
-            //       brushType : 'both',
-            //       borderColor : 'rgba(255,215,0,0.4)',
-            //       borderWidth : 1
-            //     },
-            //     lineStyle: {
-            //       color: 'source',
-            //       curveness: 0.3
-            //     },
-            //   },
-            //   emphasis: {
-            //     lineStyle: {
-            //       width: 10
-            //     }
-            //   }
-            // },
-            roam : false,
-            data : this.data,
-            links : this.links,
+            roam: true,
+            data: this.data,
+            links: this.links,
           }]
         };
-        myChart.setOption(option);
+        myChart.setOption(option, true);
       },
       async LoadData(record) {
         try {
+          this.isList = true
+          const data = []
+          this.links = []
           let formData = new FormData();
           formData.append('title', record.title);
           formData.append('content', record.content);
+          let id = 1
           let result = await api.EntityIdentificationList(formData)
-          console.log(result)
           if (result.code === 200) {
-            if (result.data.length > 0) {
-              result.data.map((v, i) => {
-                this.data.push({
-                  name: v.name,
-                  category: 1,
+            let List = this.deteleObject(result.data)
+            if (List.length > 0) {
+              List = this.deteleObject(List)
+              List.map((v, i) => {
+                data.push({
+                  id: v.code,
+                  showName: v.name,
+                  category: 0,
                 })
                 if (v.words.length > 0) {
-                  v.words.map((items, k) => {
-                    this.data.push({
-                      name: items,
-                      category: 2,
+                  v.words = this.deteleObject(v.words)
+                  v.words.map((item, j) => {
+                    data.push({
+                      id: i + item.id,
+                      value: item.score,
+                      showName: item.word,
+                      category: 1,
                     })
                   })
                 }
-            console.log(v)
               })
-              let data = [{name: '文本', category: 0}]
-              this.data = [...data, ...this.data]
-              this.data.forEach((node) => {
+              let item = [{name: '文本0', showName: '文本', category: 0}]
+              this.data = [...item, ...data]
+              this.data.forEach((node, i) => {
                 if (node.category === 0) {
                   node.symbolSize = 50;
+                } else {
+                  node.symbolSize = 50 / 1.5 + node.value;
+                  node.category = node.category;
                 }
-                node.itemStyle = null;
-                node.symbolSize = 60
-                node.value = node.symbolSize;
-                node.symbolSize /= 1.5;
-                node.label = {
-                  normal: {
-                    show: node.symbolSize > 30
-                  }
-                };
-                node.category = node.category;
               });
-
-              console.log('data', this.data)
-              result.data.map((v, i) => {
+              List.map((v, i) => {
                 this.links.push({
-                  source: v.name,
-                  target: "文本",
-                  name: "实体",
+                  source: v.code,
+                  target: '文本0'
                 })
                 if (v.words.length > 0) {
                   v.words.map((items, k) => {
                     this.links.push({
-                      source: v.name,
-                      target: items,
-                      name: "内容",
+                      source: i + items.id,
+                      target: v.code,
                     })
                   })
                 }
               })
-              console.log('links', this.links)
             }
-
+            this.isList = false
             this.$nextTick(() => {
               this.initEchart()
             })
@@ -194,7 +169,28 @@
         } catch (e) {
           console.log(e)
         }
-      }
+      },
+      deteleObject(obj) {
+        var uniques = [];
+        var stringify = {};
+        for (var i = 0; i < obj.length; i++) {
+          var keys = Object.keys(obj[i]);
+          keys.sort(function (a, b) {
+            return (Number(a) - Number(b));
+          });
+          var str = '';
+          for (var j = 0; j < keys.length; j++) {
+            str += JSON.stringify(keys[j]);
+            str += JSON.stringify(obj[i][keys[j]]);
+          }
+          if (!stringify.hasOwnProperty(str)) {
+            uniques.push(obj[i]);
+            stringify[str] = true;
+          }
+        }
+        uniques = uniques;
+        return uniques;
+      },
     },
     created() {
       if (this.formData.title || this.formData.content) {
@@ -217,15 +213,14 @@
 </script>
 
 <style lang="scss">
-    .PartsAnalysis {
+    .EntityIdentification {
         background-color: #f6f6f6;
-        min-height: 300px;
         padding: 20px;
 
         .Card {
             .EntityIdentificationEcharts {
                 width: 100%;
-                height: 300px;
+                min-height: 600px;
             }
         }
     }

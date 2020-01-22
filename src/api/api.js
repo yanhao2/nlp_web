@@ -41,7 +41,7 @@ export default {
   },
   // 实体识别
   EntityIdentificationList (data) {
-    return this.send('POST', `/nlp_api/v1/entry/getEntry`, data)
+    return this.send('POST', `/nlp_api/v1/entry/getEntryByModelWithScore`, data)
   },
   // 关键词
   keywordList (data) {
@@ -82,5 +82,13 @@ export default {
   // 对象层面
   objectLevelList (data) {
     return this.send('POST', `/nlp_api/v1/level/getLevels`, data)
+  },
+  // 获取数据
+  LayoutList (data) {
+    return this.send('POST', `/nlp_api/v1/data/getOneData`, data)
+  },
+  // 对象层面情感
+  ObjectLevelEmotionList (data) {
+    return this.send('POST', `/nlp_api/v1/sentiment/getTargetsRelationSentiment`, data)
   },
 }
