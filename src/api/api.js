@@ -91,4 +91,9 @@ export default {
   ObjectLevelEmotionList (data) {
     return this.send('POST', `/nlp_api/v1/sentiment/getTargetsRelationSentiment`, data)
   },
+  // 对象层面情感
+  headersAidType (data) {
+    return this.send('POST', `/nlp_api/v1/data/getDataByAidAndType`, data)
+  },
+
 }
