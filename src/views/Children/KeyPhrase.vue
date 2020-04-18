@@ -10,7 +10,7 @@
             </div>
             <Spin fix v-show="isList">
                 <Icon type="ios-loading" size=18 class="demo-spin-icon-load"></Icon>
-                <div>Loading</div>
+                <div>载入中...</div>
             </Spin>
         </Card>
     </div>

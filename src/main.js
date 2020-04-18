@@ -6,7 +6,7 @@ import ViewUI from 'view-design';
 import 'view-design/dist/styles/iview.css';
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
-
+// import './permission.js'
 import echarts from 'echarts'
 import echartswordcloud from 'echarts-wordcloud'
 Vue.prototype.$echarts = echarts

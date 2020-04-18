@@ -1,8 +1,11 @@
 import axios from 'axios'
 import store from '../store'
-import qs from 'qs'
+import Cookies from "js-cookie"
 axios.defaults.timeout = 60000 // timeout in 10 seconds.
 axios.defaults.baseURL = store.state.urlApi
+import qs from 'qs';
+const token = Cookies.get('token') // 获取用户登录token
+const refreshToken = Cookies.get('refreshToken') // 获取用户登录token
 export default {
   send (method, uri, data, headers, record, ken) {
     // data = qs(data)
@@ -14,7 +17,8 @@ export default {
           data: data,
           params: method === 'POST'  || method === 'PUT'  ? '' : data,
           headers :{
-            // 'consumes': 'application/json',
+            // 'Content-Type': 'application/x-www-form-urlencoded',
+            // 'Authorization' : `Bearer` + ' ' + (data || '')
           }
         })
           .then(response => {
@@ -34,6 +38,25 @@ export default {
         reject(e)
       }
     })
+  },
+  // 处理headers 头部
+  headersFun(method, uri, data, record, ken) {
+    let headers = {}
+    headers['Authorization'] = `bearer` + ' ' + (token || '')
+    if (method === 'POST') {
+      headers['Content-Type'] = 'application/json;charset=utf-8'
+      data = JSON.stringify(data)
+    }
+    return this.send(method, uri, data, headers, record, ken)
+  },
+  // 处理headers 头部
+  headersLogout(method, uri, data) {
+    let headers = {}
+    headers['Authorization'] = `bearer` + ' ' + (data || '')
+    if (method === 'POST') {
+      headers['Content-Type'] = 'application/x-www-form-urlencoded'
+    }
+    return this.send(method, uri, data, headers)
   },
   // 词性分析
   PartsAnalysisList (data) {
@@ -87,6 +110,10 @@ export default {
   LayoutList (data) {
     return this.send('POST', `/nlp_api/v1/data/getOneData`, data)
   },
+  // 获取数据
+  LayoutTestList (data) {
+    return this.send('POST', `/nlp_api/v1/data/getOneDataForTest`, data)
+  },
   // 对象层面情感
   ObjectLevelEmotionList (data) {
     return this.send('POST', `/nlp_api/v1/sentiment/getTargetsRelationSentiment`, data)
@@ -95,5 +122,8 @@ export default {
   headersAidType (data) {
     return this.send('POST', `/nlp_api/v1/data/getDataByAidAndType`, data)
   },
-
+  // 获取自媒体行业字典接口
+  MediaIndustryList(data, ken) {
+    return this.headersFun('POST', `http://60.247.62.110:10040/Manager/addOrUpdateDictData`, data, ken)
+  },
 }
