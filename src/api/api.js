@@ -66,6 +66,10 @@ export default {
   EntityIdentificationList (data) {
     return this.send('POST', `/nlp_api/v1/entry/getEntryByModelWithScore`, data)
   },
+  // 实体识别
+  EntityIdentificationListTest (data) {
+    return this.send('POST', `/nlp_api/v1/entry/getTestEntryByModelWithScore`, data)
+  },
   // 关键词
   keywordList (data) {
     return this.send('POST', `/nlp_api/v1/keyword/getKeyWords`, data)

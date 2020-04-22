@@ -113,7 +113,7 @@
           formData.append('title', record.title);
           formData.append('content', record.content);
           let id = 1
-          let result = await api.EntityIdentificationList(formData)
+          let result = await api.EntityIdentificationListTest(formData)
           if (result.code === 200) {
             let List = this.deteleObject(result.data)
             if (List.length > 0) {
